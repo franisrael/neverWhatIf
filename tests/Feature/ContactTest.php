@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\Contact;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use App\Models\Contact;
+use App\Mail\ContactReceived;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class ApiTest extends TestCase
+class ContactTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -54,4 +56,15 @@ class ApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     }
+
+    public function test_send_email()
+    {
+        $contact = Contact::factory()->make();
+        $details = [
+            'title' => 'Mail from neverWhatIf',
+            'body' => "Thank you {$contact->name} for contacting us; we will respond as soon as possible."
+        ];
+        $subject = new ContactReceived($details);
+        $subject->assertSeeInHtml($contact->name);
+    }    
 }
